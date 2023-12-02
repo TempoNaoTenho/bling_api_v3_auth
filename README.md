@@ -40,7 +40,7 @@ Para uso com redis, as variáveis do `.env` são REDIS_HOST_IP, REDIS_HOST_PORT,
 - O `client_id` e `client_secret` são obtidos ao cadastrar aplicativo na sua conta do Bling. Veja o link [https://developer.bling.com.br/aplicativos](https://developer.bling.com.br/aplicativos)
 
 
-- O `code`` necessário para a primeira execução do script é obtido através do endereço "Link do convite" da sua conta do Bling
+- O `code` necessário para a primeira execução do script é obtido através do endereço "Link do convite" da sua conta do Bling
 ![image](code-link-bling.jpg)
 
 - Com o `code` você tem 1 minuto para obter o `refresh token`. (Neste ponto é só rodar o script e colar o code ou passar o parâmetro para a função `get_tokens_from_bling_using_code_in_url(code)`).
