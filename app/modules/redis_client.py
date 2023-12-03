@@ -22,17 +22,9 @@ class RedisClient(RedisConn):
         - token_value: The value of the token.
         - expires_in: The time in seconds until the token expires.
         """
-        try:
+        if token_name == 'access_token' or\
+            token_name == 'refresh_token':
             self.redis_connection.setex(token_name, expires_in, token_value)
-        except redis.AuthenticationError as e:
-            print('Erro de autenticação, verifique suas credenciais')
-            raise
-        except redis.ConnectionError as e:
-            print(e)
-            raise          
-        except redis.RedisError as e:
-            print(e)
-            raise
         
     def get_current_bling_access_token(self):
         """

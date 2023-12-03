@@ -3,11 +3,8 @@ import json
 import redis
 import base64
 import requests
-import logging
 from typing import Optional
 from config import ConfigSingleton
-
-LOGGER = logging.getLogger('django')
 
 class TokenStorage:
     """
@@ -51,13 +48,15 @@ class TokenStorage:
         if ConfigSingleton.TOKENS_STORAGE_METHOD == 'redis':
             try:
                 from modules import redis_client
-                redis_client.RedisClient().set_bling_token(
-                    access_token=token_key_name,
+                redis_client_instance = redis_client.RedisClient()
+
+                redis_client_instance.set_bling_token(
+                    token_name=token_key_name,
                     token_value=token_value,
                     expires_in=expires_in
                 )
             except redis.RedisError as e:
-                LOGGER.exception(e)
+                print(e)
                 raise
         elif ConfigSingleton.TOKENS_STORAGE_METHOD == 'json':
             credentials_folder = os.path.join(os.getcwd(), 'credential')
@@ -98,12 +97,19 @@ class TokenStorage:
             Optional[str]: The value of the token if found, None otherwise.
         """
         if ConfigSingleton.TOKENS_STORAGE_METHOD == 'redis':
-            return redis.Redis(
+            
+            token = redis.Redis(
                 host=ConfigSingleton.REDIS_HOST_IP,
                 port=ConfigSingleton.REDIS_HOST_PORT,
                 password=ConfigSingleton.REDIS_PASSWORD,
                 db=0
             ).get(token_key)
+            
+            if isinstance(token, bytes):
+                token = token.decode('utf-8')
+            
+            return token
+                        
         elif ConfigSingleton.TOKENS_STORAGE_METHOD == 'json':
             credentials_folder = os.path.join(os.getcwd(), 'credential')
             credentials_file = os.path.join(credentials_folder, 'credentials.json')
@@ -135,7 +141,7 @@ class BlingApiTokenHandler:
             'Authorization': f'Basic {encoded_credentials}'
         }
 
-    def _post_request(self, payload) -> dict:
+    def _post_request(self, payload):
         """
         Sends a POST request to the authentication endpoint.
         """
@@ -145,7 +151,7 @@ class BlingApiTokenHandler:
         
         if response.status_code != 200:
             # Add more information to the error message or treat it
-            data['status_code'] = response.status_code
+            print(f'Erro: {response.status_code} - {data}') 
             return data
 
         self._save_credentials(data)
@@ -159,7 +165,7 @@ class BlingApiTokenHandler:
         refresh_token = bling_response_dict.get('refresh_token')
         expires_in = bling_response_dict.get('expires_in')
           
-        if access_token:          
+        if access_token:
             TokenStorage.save_token(token_key_name='access_token', 
                                     token_value=access_token,
                                     expires_in=60)
@@ -167,9 +173,9 @@ class BlingApiTokenHandler:
         if refresh_token:
             TokenStorage.save_token(token_key_name='refresh_token', 
                                     token_value=refresh_token,
-                                    expires_in=expires_in)
+                                    expires_in=21600)
 
-    def get_token_using_code(self, code) -> dict:
+    def get_token_using_code(self, code):
         """
         - Retrieves the access token using the URL code param. This code is used to get the access and refresh tokens. It has to be manually copied from the URL generated on Bling App Config.
         - Obtém o token de acesso usando o código URL. Este código é usado para obter os tokens de acesso e de atualização. Ele deve ser copiado manualmente da URL gerada no App Bling.
