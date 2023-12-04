@@ -7,12 +7,10 @@ from typing import Optional
 from config import ConfigSingleton
 
 class TokenStorage:
-    """
-    A class to handle token storage and retrieval.
-    """
+    """A class to handle token storage and retrieval."""
 
     @staticmethod
-    def check_param_value(param_name: str, param_value: str) -> None:
+    def check_param_value(param_name: str, param_value: str):
         """
         Check if the parameter name and value are valid.
 
@@ -34,7 +32,7 @@ class TokenStorage:
             raise TypeError('(check_param_value) - token_key_name must be a string')
 
     @staticmethod
-    def save_token(token_key_name: str, token_value: str, expires_in: int = 21600) -> None:
+    def save_token(token_key_name: str, token_value: str, expires_in: int = 21600):
         """
         Save a token with the given key name and value.
 

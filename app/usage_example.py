@@ -1,20 +1,27 @@
-import os
+from modules.bling import BlingApiTokenHandler, TokenStorage
 
-from modules import bling, redis_client
-from config import ConfigSingleton
 
-def get_tokens_from_bling_using_code_in_url(code):
-
-    bling.BlingApiTokenHandler().get_token_using_code(code)
-    
-    
-def usage_example():
+def get_tokens_with_code_example(code, 
+                                 token_handler: BlingApiTokenHandler):
         
-    bling.BlingApiTokenHandler().refresh_tokens(
-    bling.TokenStorage.retrieve_token_by_key('refresh_token'))
+    return token_handler.get_token_using_code(code)
 
-    access_token = bling.TokenStorage.retrieve_token_by_key('access_token')
-    refresh_token = bling.TokenStorage.retrieve_token_by_key('refresh_token')
+    
+def refresh_tokens_example(refresh_token: str,
+                           token_handler: BlingApiTokenHandler):
+    
+    return token_handler.refresh_tokens(refresh_token)
+    
+    
+def bling_api_call_example(token_storage: TokenStorage,
+                  token_handler: BlingApiTokenHandler):
+        
+    refresh_tokens_example(
+        token_storage.retrieve_token_by_key('refresh_token'), 
+        token_handler)
+
+    access_token = token_storage.retrieve_token_by_key('access_token')
+    refresh_token = token_storage.retrieve_token_by_key('refresh_token')
     
     print('access_token: ', access_token)
     print('refresh_token: ', refresh_token)
@@ -29,18 +36,10 @@ def usage_example():
             ...
             data = resp.json()
             return data"""
-        print('Example success')
-        pass
+        
+        return 'Example success!'
     
-if __name__ == '__main__':
     
-    credentials_folder = os.path.join(os.getcwd(), 'credential')
-    
-    first_time_runing = not os.path.exists(credentials_folder)
-    
-    if first_time_runing:
-        code = input('Code: ')
-        get_tokens_from_bling_using_code_in_url(code)
-    else:
-        usage_example()
+
+
 
