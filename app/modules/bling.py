@@ -1,9 +1,11 @@
 import os
 import json
-import redis
 import base64
-import requests
 from typing import Optional
+
+import redis
+import requests
+
 from config import ConfigSingleton
 
 class TokenStorage:
@@ -23,7 +25,8 @@ class TokenStorage:
             TypeError: If the parameter value is not a string.
         """
         if not param_value or not param_name:
-            raise ValueError(f'(check_param_value) - Missing params. Param: {param_name} Value: {param_value}')
+            raise ValueError(
+                f'(check_param_value) - Missing params. Param: {param_name} Value: {param_value}')
 
         if isinstance(param_value, bytes):
             param_value = param_value.decode('utf-8')
@@ -39,7 +42,8 @@ class TokenStorage:
         Args:
             token_key_name (str): The name of the token key.
             token_value (str): The value of the token.
-            expires_in (int, optional): The expiration time of the token in seconds. Defaults to 21600.
+            expires_in (int, optional): The expiration time of the token in seconds.
+            Defaults to 21600.
         """
         TokenStorage.check_param_value(param_name=token_key_name, param_value=token_value)
 
@@ -62,7 +66,7 @@ class TokenStorage:
             credentials_file = os.path.join(credentials_folder, 'credentials.json')
 
             if not os.path.exists(credentials_file):
-                with open(credentials_file, 'w') as file:
+                with open(credentials_file, 'w', encoding='utf-8') as file:
                     json.dump(
                         {
                             'access_token': '',
@@ -73,12 +77,14 @@ class TokenStorage:
                     )
 
             # Update the credentials file with the new token accordingly to the token_key_name
-            with open(credentials_file, 'r') as file:
+            with open(credentials_file, 'r', encoding='utf-8') as file:
                 credentials = json.load(file)
 
             credentials[token_key_name] = token_value
 
-            with open(credentials_file, 'w') as file:
+            with open(credentials_file,
+                      'w',
+                      encoding='utf-8') as file:
                 json.dump(credentials, file)
         else:
             raise NotImplementedError
@@ -94,43 +100,43 @@ class TokenStorage:
         Returns:
             Optional[str]: The value of the token if found, None otherwise.
         """
+
         if ConfigSingleton.TOKENS_STORAGE_METHOD == 'redis':
-            
+
             token = redis.Redis(
                 host=ConfigSingleton.REDIS_HOST_IP,
                 port=ConfigSingleton.REDIS_HOST_PORT,
                 password=ConfigSingleton.REDIS_PASSWORD,
                 db=0
             ).get(token_key)
-            
+
             if isinstance(token, bytes):
                 token = token.decode('utf-8')
-            
-            return token
-                        
-        elif ConfigSingleton.TOKENS_STORAGE_METHOD == 'json':
+
+        if ConfigSingleton.TOKENS_STORAGE_METHOD == 'json':
             credentials_folder = os.path.join(os.getcwd(), 'credential')
             credentials_file = os.path.join(credentials_folder, 'credentials.json')
 
-            with open(credentials_file, 'r') as file:
+            with open(credentials_file, 'r', encoding='utf-8') as file:
                 file_dict = json.load(file)
 
-            return file_dict.get(token_key)
-        else:
-            raise NotImplementedError
+            token = file_dict.get(token_key)
+
+        return token
 
 class BlingApiTokenHandler:
     """
     A class for handling API token authentication for the Bling API.
     """
     AUTH_URL = 'https://www.bling.com.br/Api/v3/oauth/token'
-    
+
     def __init__(self):
         self.headers = self._prepare_headers()
 
     def _prepare_headers(self):
         """
-        Prepares the headers for the API request (must be in base64 {client_id}:{client_secret} format).
+        Prepares the headers for the API request
+        (must be in base64 {client_id}:{client_secret} format).
         """
         credential = f"{ConfigSingleton.BLING_CLIENT_ID}:{ConfigSingleton.BLING_CLIENT_SECRET}"
         encoded_credentials = base64.b64encode(credential.encode('ascii')).decode('ascii')
@@ -143,13 +149,16 @@ class BlingApiTokenHandler:
         """
         Sends a POST request to the authentication endpoint.
         """
-        response = requests.post(self.AUTH_URL, 
-                                 headers=self.headers, json=payload)
+        response = requests.post(self.AUTH_URL,
+                                 headers=self.headers,
+                                 json=payload,
+                                 timeout=10)
+
         data = response.json()
-        
+
         if response.status_code != 200:
             # Add more information to the error message or treat it
-            print(f'Erro: {response.status_code} - {data}') 
+            print(f'Erro: {response.status_code} - {data}')
             return data
 
         self._save_credentials(data)
@@ -157,34 +166,39 @@ class BlingApiTokenHandler:
 
     def _save_credentials(self, bling_response_dict):
         """
-        Saves the access and refresh tokens to the token using TokenStorage class to handle custom storage options (e.g. Redis/Json).
+        Saves the access and refresh tokens to the token using TokenStorage
+        class to handle custom storage options (e.g. Redis/Json).
         """
         access_token = bling_response_dict.get('access_token')
         refresh_token = bling_response_dict.get('refresh_token')
-        expires_in = bling_response_dict.get('expires_in')
-          
+
         if access_token:
-            TokenStorage.save_token(token_key_name='access_token', 
+            TokenStorage.save_token(token_key_name='access_token',
                                     token_value=access_token,
                                     expires_in=60)
-            
+
         if refresh_token:
-            TokenStorage.save_token(token_key_name='refresh_token', 
+            TokenStorage.save_token(token_key_name='refresh_token',
                                     token_value=refresh_token,
                                     expires_in=21600)
 
     def get_token_using_code(self, code):
         """
-        - Retrieves the access token using the URL code param. This code is used to get the access and refresh tokens. It has to be manually copied from the URL generated on Bling App Config.
-        - Obtém o token de acesso usando o código URL. Este código é usado para obter os tokens de acesso e de atualização. Ele deve ser copiado manualmente da URL gerada no App Bling.
+        - Retrieves the access token using the URL code param.
+          This code is used to get the access and refresh tokens.
+          It has to be manually copied from the URL generated on Bling App Config.
+
+        - Obtém o token de acesso usando o código URL.
+          Este código é usado para obter os tokens de acesso e de atualização.
+          Ele deve ser copiado manualmente da URL gerada no App Bling.
         """
         payload = {
             'Content-Type': 'application/x-www-form-urlencoded',
             'grant_type': 'authorization_code',
             'code': code
         }
-        
-        return self._post_request(payload) 
+
+        return self._post_request(payload)
 
     def refresh_tokens(self, refresh_token) -> dict:
         """
@@ -195,6 +209,5 @@ class BlingApiTokenHandler:
             'grant_type': 'refresh_token',
             'refresh_token': refresh_token
         }
-        
+
         return self._post_request(payload)
-    
