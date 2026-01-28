@@ -2,11 +2,12 @@
 
 ## Descrição
 
-Exemplo simples de código para a autenticação com a nova `API do Bling (V3)` utilizando Python.
+Exemplo simples de código para autenticação OAuth2 com a `API do Bling (V3)` utilizando Python.
+Por padrão o projeto funciona sem Redis, usando armazenamento em JSON local.
 
-Pode ser configurado para armazenar os dados em formato JSON ou utilizando o redis, alterando o valor da variável `TOKENS_STORAGE_METHOD` no `config.py`. O padrão é utilizar o `JSON`
+Pode ser configurado para armazenar os dados em formato JSON ou utilizando o Redis, definindo `TOKENS_STORAGE_METHOD=json|redis` no `.env`. O padrão é `json` (sem Redis).
 
-Um exemplo de uso está no arquvio `example_usage.py`.
+Um exemplo de uso está no arquivo `app/usage_example.py`.
 
 -------------------------------------
 
@@ -15,7 +16,7 @@ Importante: o refresh token tem uma validade de 30 dias, conforme documentação
 -------------------------------------
 
 
-## Instalação versão com JSON
+## Instalação
 
 ```bash
 git clone https://github.com/TempoNaoTenho/bling_api_v3_auth.git
@@ -23,16 +24,22 @@ python -m venv venv
 Linux (source venv/bin/activate) ou Windows(venv/Scripts/activate)
 pip install -r requirements.txt
 ```
+
+Para habilitar Redis, instale as dependências opcionais:
+
+```bash
+pip install -r requirements-redis.txt
+```
 ## Configuração inicial
 
-- Crie um arquivo `.env` com as seguintes variáveis:
+- Crie um arquivo `.env` na raiz do projeto (você pode copiar de `.env.example`):
 
 ```bash
 BLING_CLIENT_ID=SEU_CLIENT_ID
 BLING_CLIENT_SECRET=SEU_CLIENT_SECRET
 ```
 
-Para uso com redis, as variáveis do `.env` são REDIS_HOST_IP, REDIS_HOST_PORT, REDIS_PASSWOR
+Para uso com Redis, as variáveis do `.env` são REDIS_HOST_IP, REDIS_HOST_PORT, REDIS_PASSWORD
 
 
 ## Obter os tokens:
@@ -43,24 +50,25 @@ Para uso com redis, as variáveis do `.env` são REDIS_HOST_IP, REDIS_HOST_PORT,
 - O `code` necessário para a primeira execução do script é obtido através do endereço "Link do convite" da sua conta do Bling
 ![image](code-link-bling.jpg)
 
-- Com o `code` você tem 1 minuto para obter o `refresh token`. (Neste ponto é só rodar o script e colar o code ou passar o parâmetro para a função `get_tokens_from_bling_using_code_in_url(code)`).
+- Com o `code` você tem 1 minuto para obter o `refresh token`. (Neste ponto é só rodar o script e colar o code ou passar o parâmetro para a função `get_tokens_with_code_example(code)`).
 
 ## Executar o script
 
 ```bash
-cd app
-python example_usage.py
+python app/main.py
 ```
+
+Os tokens são armazenados em `credential/credentials.json` (ignorado pelo git).
 
 # - English
 
 ## Description
 
-Exemple of code to authenticate with the new `Bling (V3) API` using Python.
+Example code to authenticate with the `Bling (V3) API` using OAuth2 in Python.
 
-It can be configured to store the data in JSON format or using redis, changing the value of the variable `TOKENS_STORAGE_METHOD` in `config.py`. The default is to use JSON
+It can be configured to store the data in JSON format or using Redis by setting `TOKENS_STORAGE_METHOD=json|redis` in the `.env` file. The default is `json`.
 
-An example of usage is in the file `example_usage.py`.
+An example of usage is in the file `app/usage_example.py`.
 
 -------------------------------------
 
@@ -80,14 +88,20 @@ pip install -r requirements.txt
 
 ## Configuration
 
-- Create an `.env` file with the following variables:
+- Create an `.env` file at the project root (you can copy from `.env.example`):
 
 ```bash
 BLING_CLIENT_ID=YOUR_CLIENT_ID
 BLING_CLIENT_SECRET=YOUR_CLIENT_SECRET
 ```
 
-For use with redis, the variables in the `.env` file are REDIS_HOST_IP, REDIS_HOST_PORT, REDIS_PASSWORD
+For use with redis, the variables in the `.env` file are REDIS_HOST_IP, REDIS_HOST_PORT, REDIS_PASSWORD.
+
+To enable Redis support, install the optional dependencies:
+
+```bash
+pip install -r requirements-redis.txt
+```
 
 
 ## Get tokens:
@@ -95,12 +109,12 @@ For use with redis, the variables in the `.env` file are REDIS_HOST_IP, REDIS_HO
 - The `client_id` and `client_secret` are obtained when registering your app on Bling. See the link [https://developer.bling.com.br/aplicativos](https://developer.bling.com.br/aplicativos)
 
 
-- The `code` is required to get the `refresh token`. (At this point, you can run the script and paste the code or pass the parameter to the function `get_tokens_from_bling_using_code_in_url(code)`).
+- The `code` is required to get the `refresh token`. (At this point, you can run the script and paste the code or pass the parameter to the function `get_tokens_with_code_example(code)`).
 
 ## Run the script
 
 ```bash
-cd app
-python example_usage.py
+python app/main.py
 ```
 
+Tokens are stored at `credential/credentials.json` (git-ignored).

@@ -1,5 +1,9 @@
 .env
 /env
+./venv
+/venv
+credential/
+credentials.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

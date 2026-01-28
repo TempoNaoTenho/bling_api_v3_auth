@@ -1,11 +1,19 @@
-import redis
+try:
+    import redis  # type: ignore
+except ModuleNotFoundError as exc:  # pragma: no cover - guarded import
+    raise ModuleNotFoundError(
+        'Redis dependency not installed. Install with '
+        '`pip install -r requirements-redis.txt` or set '
+        'TOKENS_STORAGE_METHOD=json.'
+    ) from exc
+
 from config import ConfigSingleton
 
 class RedisConn:
     """A class to handle Redis connection."""
 
-    HOST = ConfigSingleton.REDIS_HOST_IP
-    PORT = ConfigSingleton.REDIS_HOST_PORT
+    HOST = ConfigSingleton.REDIS_HOST_IP or '127.0.0.1'
+    PORT = int(ConfigSingleton.REDIS_HOST_PORT or 6379)
     PASSWORD = ConfigSingleton.REDIS_PASSWORD
 
     redis_connection = redis.Redis(host=HOST, port=PORT, password=PASSWORD, db=0)

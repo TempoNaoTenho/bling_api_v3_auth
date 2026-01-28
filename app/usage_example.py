@@ -41,6 +41,21 @@ def refresh_tokens_example(refresh_token: str,
 
     return token_handler.refresh_tokens(refresh_token)
 
+def get_valid_access_token(token_storage: TokenStorage,
+                           token_handler: BlingApiTokenHandler):
+    """
+    Return a valid access token, refreshing it only when needed.
+    """
+    access_token = token_storage.retrieve_token_by_key('access_token')
+    if access_token and not token_storage.is_token_expired('access_token'):
+        return access_token
+
+    refresh_token = token_storage.retrieve_token_by_key('refresh_token')
+    if not refresh_token:
+        return None
+
+    token_handler.refresh_tokens(refresh_token)
+    return token_storage.retrieve_token_by_key('access_token')
 
 def bling_api_call_example(token_storage: TokenStorage,
                   token_handler: BlingApiTokenHandler) -> str:
@@ -57,11 +72,7 @@ def bling_api_call_example(token_storage: TokenStorage,
         str
     """
 
-    refresh_tokens_example(
-        token_storage.retrieve_token_by_key('refresh_token'),
-        token_handler)
-
-    access_token = token_storage.retrieve_token_by_key('access_token')
+    access_token = get_valid_access_token(token_storage, token_handler)
     refresh_token = token_storage.retrieve_token_by_key('refresh_token')
 
     print('access_token: ', access_token)

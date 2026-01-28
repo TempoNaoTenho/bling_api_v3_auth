@@ -14,12 +14,16 @@ class _Config():
 
     ##  Configs  ##
 
-    BASE_DIR = Path(__file__).resolve().parent
-    ENV_FILE_PATH = os.path.join(BASE_DIR, '.env')
-    load_dotenv(ENV_FILE_PATH)
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    ENV_FILE_PATHS = [
+        BASE_DIR / '.env',
+        Path(__file__).resolve().parent / '.env',
+    ]
+    for env_path in ENV_FILE_PATHS:
+        load_dotenv(env_path)
 
     # Storage Method
-    TOKENS_STORAGE_METHOD = 'json' # or 'redis'
+    TOKENS_STORAGE_METHOD = os.environ.get('TOKENS_STORAGE_METHOD', 'json')
 
     ##  Secrets ##
 
@@ -31,6 +35,11 @@ class _Config():
     REDIS_HOST_IP       = os.environ.get('REDIS_HOST_IP')
     REDIS_HOST_PORT     = os.environ.get('REDIS_HOST_PORT')
     REDIS_PASSWORD      = os.environ.get('REDIS_PASSWORD')
+
+    # Token handling defaults
+    DEFAULT_ACCESS_TOKEN_EXPIRES_IN = int(os.environ.get('DEFAULT_ACCESS_TOKEN_EXPIRES_IN', '3600'))
+    DEFAULT_REFRESH_TOKEN_EXPIRES_IN = int(os.environ.get('DEFAULT_REFRESH_TOKEN_EXPIRES_IN', '2592000'))
+    ACCESS_TOKEN_EXPIRY_SKEW = int(os.environ.get('ACCESS_TOKEN_EXPIRY_SKEW', '60'))
 
 
 class ConfigSingleton(_Config, metaclass=Singleton):
